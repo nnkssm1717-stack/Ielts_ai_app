@@ -19,7 +19,8 @@ model = genai.GenerativeModel('gemini-1.5-flash')
 
 # 3. アプリの見た目
 st.title("IELTS Writing AI添削")
-# 【新機能】問題生成セクション
+
+# 【ここを修正】if文を使って、ボタンが押された時だけ実行するようにします
 st.header("💡 練習問題を作る")
 if st.button("ランダムに問題を作成する"):
     topic_prompt = "IELTS Writing Task 2の練習問題を1つ生成して。アカデミックなトピックでお願いします。"
