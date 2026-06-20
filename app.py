@@ -3,6 +3,21 @@ import google.generativeai as genai
 from PIL import Image
 import random
 
+# AIの設定：モデル名を自動検索せず、直接指定します
+@st.cache_resource
+def get_ai_model():
+    genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
+    
+    # 確実なモデル名を直接指定します。もしこれでもダメな場合は
+    # 'gemini-1.5-flash' を 'gemini-pro' や 'gemini-1.5-pro' に書き換えて試してください。
+    model_name = "gemini-1.5-flash"
+    
+    st.write(f"モデル名を {model_name} に固定設定しました") 
+    return genai.GenerativeModel(model_name)
+
+model = get_ai_model()
+
+
 # 30問の完全リスト
 IELTS_QUESTIONS = [
     "Some people think that the best way to reduce crime is to give longer prison sentences. Discuss both views and give your opinion.",
