@@ -110,3 +110,19 @@ def get_ai_model():
     return genai.GenerativeModel(models[0])
 
 model = get_ai_model()
+
+@st.cache_resource
+def get_ai_model():
+    genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
+    
+    # 利用可能なモデルのうち、1.5系（確実なもの）だけを絞り込む
+    models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
+    
+    # "gemini-1.5-flash" を優先的に探し、なければ次を探す
+    target_model = "models/gemini-1.5-flash"
+    if target_model not in models:
+        # もし1.5 flashがなければ、1.5 proを探す
+        target_model = "models/gemini-1.5-pro"
+        
+    st.write(f"利用中のモデル: {target_model}")
+    return genai.GenerativeModel(target_model)
