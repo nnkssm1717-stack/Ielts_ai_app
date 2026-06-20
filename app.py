@@ -3,7 +3,7 @@ import google.generativeai as genai
 from PIL import Image
 import random
 
-# 1. 問題リスト
+# 1. 問題リスト（30問）
 IELTS_QUESTIONS = [
     "Some people think that the best way to reduce crime is to give longer prison sentences. Discuss both views and give your opinion.",
     "Nowadays, many people work from home. What are the advantages and disadvantages of this trend?",
@@ -37,16 +37,16 @@ IELTS_QUESTIONS = [
     "Some people think that all university students should study a science subject. Do you agree or disagree?"
 ]
 
-# 2. AIの設定（関数は1つだけに整理）
+# 2. AIの設定（関数は1つだけに厳選）
 @st.cache_resource
 def get_ai_model():
     genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
-    # 安定したモデル名を直接指定
+    # 確実に存在するモデル名を指定
     return genai.GenerativeModel('gemini-1.5-flash')
 
 model = get_ai_model()
 
-# 3. UI表示
+# 3. アプリの見た目
 st.title("IELTS Writing AI添削")
 
 if st.button("ランダムに問題を出題"):
@@ -55,7 +55,6 @@ if st.button("ランダムに問題を出題"):
 if "problem_text" in st.session_state:
     st.info(f"### 本日のお題:\n{st.session_state.problem_text}")
 
-# 入力欄
 user_name = st.text_input("ユーザー名を入力")
 style_input = st.text_input("使いたい文法やスラング、理想のスタイルを入力 (任意)")
 text_input = st.text_area("直接英文を入力して添削")
@@ -73,8 +72,7 @@ if st.button("添削開始"):
                     res = model.generate_content([prompt, image])
                 else:
                     res = model.generate_content([prompt, text_input])
-                
                 st.write(res.text)
                 st.success("添削完了！")
             except Exception as e:
-                st.error(f"エラーが発生しました: {e}")
+                st.error(f"エラー: {e}")
