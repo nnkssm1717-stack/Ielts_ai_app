@@ -1,6 +1,3 @@
-st.write("読み込めたSecretsのキー一覧:")
-st.write(list(st.secrets.keys()))
-st.stop() 
 import streamlit as st
 import json
 import gspread
@@ -8,6 +5,9 @@ from oauth2client.service_account import ServiceAccountCredentials
 import google.generativeai as genai
 from PIL import Image
 import datetime
+
+st.write("読み込めたSecretsのキー一覧:")
+st.write(list(st.secrets.keys()))
 
 # 1. スプレッドシートの準備
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
