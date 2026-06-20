@@ -30,20 +30,19 @@ if st.button("添削開始"):
         image = Image.open(uploaded_file)
         response = model.generate_content(["このIELTSのライティングを添削して。Bandスコアと改善点を表示して。", image])
         response_text = response.text
+        log_data = [datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), user_name, "Writing", "写真データ", response_text, "完了"]
     
     # 2. テキストが入力されている場合
     elif text_input:
         response = model.generate_content(["このIELTSのライティングを添削して。Bandスコアと改善点を表示して。", text_input])
         response_text = response.text
+        log_data = [datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), user_name, "Writing", text_input, response_text, "完了"]
     
     else:
         st.warning("写真か英文のどちらかを入力してください！")
 
-    # 結果を表示
+    # 結果を表示して保存
     if response_text:
         st.write(response_text)
-        
-        # スプレッドシートに保存
-        date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-        sheet.append_row([date, user_name, "Writing", "写真データ", response.text, "分析中"])
+        sheet.append_row(log_data)
         st.success("スプレッドシートに保存しました！")
