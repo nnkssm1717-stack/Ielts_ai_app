@@ -54,6 +54,9 @@ if st.button("ランダムに問題を出題"):
 if "problem_text" in st.session_state:
     st.info(f"### 本日のお題:\n{st.session_state.problem_text}")
 
+# 入力欄を復活
+user_name = st.text_input("ユーザー名を入力")
+style_input = st.text_input("使いたい文法やスラング、理想のスタイルを入力 (任意)")
 text_input = st.text_area("直接英文を入力して添削")
 uploaded_file = st.file_uploader("ノート写真をアップロード", type=["jpg", "png"])
 
@@ -62,7 +65,8 @@ if st.button("添削開始"):
         st.warning("英文を入力するか、写真をアップロードしてください。")
     else:
         with st.spinner('添削中...'):
-            prompt = "IELTSのライティングを添削し、Bandスコアと改善点を教えて。"
+            # スタイル指定をプロンプトに組み込む
+            prompt = f"IELTSのライティングを添削し、Bandスコアと改善点を教えて。ユーザーが目指しているスタイル/文法: {style_input}"
             try:
                 if uploaded_file:
                     image = Image.open(uploaded_file)
