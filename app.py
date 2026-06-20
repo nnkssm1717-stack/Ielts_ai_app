@@ -37,16 +37,16 @@ IELTS_QUESTIONS = [
     "Some people think that all university students should study a science subject. Do you agree or disagree?"
 ]
 
-# 2. AIの設定：モデル名を直接指定（自動検索はしません）
+# 2. AIの設定：モデル名を 'gemini-1.5-flash' に直接固定
 @st.cache_resource
 def get_ai_model():
     genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
-    # 確実に存在するモデル名を固定
+    # 自動検索を使わず、確実に存在するモデルを指定
     return genai.GenerativeModel('gemini-1.5-flash')
 
 model = get_ai_model()
 
-# 3. アプリ表示
+# 3. UI表示
 st.title("IELTS Writing AI添削")
 
 if st.button("ランダムに問題を出題"):
