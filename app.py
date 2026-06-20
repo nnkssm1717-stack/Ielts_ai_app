@@ -20,6 +20,8 @@ model = genai.GenerativeModel('gemini-1.5-flash')
 # 3. アプリの見た目
 st.title("IELTS Writing AI添削")
 user_name = st.text_input("ユーザー名を入力")
+text_input = st.text_area("直接英文を入力して添削もできます")
+
 uploaded_file = st.file_uploader("手書きのノート写真をアップロード", type=["jpg", "png"])
 
 if st.button("添削開始"):
