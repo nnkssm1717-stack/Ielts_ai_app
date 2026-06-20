@@ -20,14 +20,18 @@ model = genai.GenerativeModel('gemini-1.5-flash')
 # 3. アプリの見た目
 st.title("IELTS Writing AI添削")
 
-# 【ここを修正】if文を使って、ボタンが押された時だけ実行するようにします
+# 問題生成機能
 st.header("💡 練習問題を作る")
 if st.button("ランダムに問題を作成する"):
     topic_prompt = "IELTS Writing Task 2の練習問題を1つ生成して。アカデミックなトピックでお願いします。"
     problem = model.generate_content(topic_prompt)
-    st.info(f"### 本日のお題:\n{problem.text}")
+    st.session_state.problem_text = problem.text  # 問題を記憶する
 
-st.divider() # 線を引いて区切る
+# 生成された問題を表示
+if "problem_text" in st.session_state:
+    st.info(f"### 本日のお題:\n{st.session_state.problem_text}")
+
+st.divider()
 
 user_name = st.text_input("ユーザー名を入力")
 style_input = st.text_input("使いたい文法やスラング、理想のスタイルを入力 (任意)")
@@ -38,9 +42,6 @@ if st.button("添削開始"):
     prompt_normal = "このIELTSのライティングを添削して。Bandスコアと改善点を表示して。"
     prompt_style = f"この英文を、以下のこだわり・スラングを反映させて添削して。こだわり: {style_input}。Bandスコアと改善点を表示して。"
     
-    response_text = ""
-    log_data = []
-
     # 写真またはテキストがあるか確認
     if uploaded_file is not None or text_input:
         
