@@ -92,3 +92,21 @@ try:
     st.write("AIモデルの読み込み成功！")
 except Exception as e:
     st.error(f"APIキーか設定に問題があります: {e}")
+
+# AIの設定：モデル名を自動的に取得します
+@st.cache_resource
+def get_ai_model():
+    genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
+    
+    # 利用可能なモデルを検索して、最初に見つかったものを利用する
+    # これにより、お使いの環境で確実に存在するモデル名が自動選択されます
+    models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
+    
+    if not models:
+        st.error("利用可能なモデルが見つかりません。")
+        return None
+        
+    st.write(f"利用中のモデル: {models[0]}") # 念のため画面に表示
+    return genai.GenerativeModel(models[0])
+
+model = get_ai_model()
