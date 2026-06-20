@@ -11,7 +11,8 @@ scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/au
 # JSONキーの中身を直接入力するか、Streamlitのsecretsを使って読み込みます
 creds = ServiceAccountCredentials.from_json_keyfile_dict(st.secrets["gcp_service_account"], scope)
 client = gspread.authorize(creds)
-sheet = client.open("IELTS_Learning_Log").sheet1
+SHEET_ID = "1clFXA6yF_I2IKPx2Kf8ppGDWIlIYar8xfiVDLciTKqE"
+sheet = client.open_by_key(SHEET_ID).sheet1
 
 # 2. AIの設定 (Gemini)
 genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
