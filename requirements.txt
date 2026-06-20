@@ -1,4 +1,4 @@
-gspread
+streamlit
 gspread
 oauth2client
 google-generativeai
