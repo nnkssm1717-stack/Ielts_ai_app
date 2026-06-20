@@ -1,5 +1,5 @@
 import streamlit as st
-import gspread
+import json
 from oauth2client.service_account import ServiceAccountCredentials
 import google.generativeai as genai
 from PIL import Image
