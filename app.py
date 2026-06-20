@@ -28,6 +28,14 @@ if st.button("添削開始"):
         # AIに写真を送って添削してもらう
         response = model.generate_content(["このIELTSのライティングを添削して。Band Scoreの目安と改善点を教えて。", image])
         
+        # テキスト入力がある場合
+    elif text_input:
+        response = model.generate_content(["このIELTSのライティングを添削して。", text_input])
+        st.write(response.text)
+        
+    else:
+        st.warning("写真か英文のどちらかを入力してください！")
+        
         # 結果を表示
         st.write(response.text)
         
