@@ -78,3 +78,17 @@ if st.button("添削開始"):
                 st.success("添削完了！")
             except Exception as e:
                 st.error(f"エラーが発生しました: {e}")
+
+# 最小構成で確認
+@st.cache_resource
+def get_ai_model():
+    genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
+    # 確実な名前で指定してみます
+    return genai.GenerativeModel('gemini-1.5-flash')
+
+# 読み込みのテスト
+try:
+    model = get_ai_model()
+    st.write("AIモデルの読み込み成功！")
+except Exception as e:
+    st.error(f"APIキーか設定に問題があります: {e}")
