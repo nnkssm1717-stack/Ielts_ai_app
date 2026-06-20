@@ -4,31 +4,33 @@ from oauth2client.service_account import ServiceAccountCredentials
 import google.generativeai as genai
 from PIL import Image
 import datetime
+import random # ランダム選択のために追加
 
-# 1. ページ設定（一番最初に書く）
+# 1. 問題リスト（ここを増やせば増やすほど問題が増えます）
+IELTS_QUESTIONS = [
+    "Some people think that the best way to reduce crime is to give longer prison sentences. Discuss both views and give your opinion.",
+    "Nowadays, many people work from home. What are the advantages and disadvantages of this trend?",
+    "Should schools teach students how to manage their money? Give reasons for your answer.",
+    "Global warming is one of the most serious issues. What measures should governments take to solve this?",
+    # ...ここに20個ほど追加してください...
+]
+
+# 2. AIの設定
+@st.cache_resource
+def get_ai_model():
+    genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
+    return genai.GenerativeModel('gemini-1.5-flash')
+
+model = get_ai_model()
+
+# 3. アプリの見た目
 st.title("IELTS Writing AI添削")
 
-# 2. 設定の読み込み（エラーを防ぐため関数化などせずシンプルに記述）
-if "gcp_service_account" in st.secrets and "GOOGLE_API_KEY" in st.secrets:
-    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-    creds = ServiceAccountCredentials.from_json_keyfile_dict(st.secrets["gcp_service_account"], scope)
-    client = gspread.authorize(creds)
-    SHEET_ID = "1clFXA6yF_I2IKPx2Kf8ppGDWIlIYar8xfiVDLciTKqE"
-    sheet = client.open_by_key(SHEET_ID).sheet1
-
-    genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
-    model = genai.GenerativeModel('gemini-1.5-flash')
-else:
-    st.error("Secretsの設定が読み込めていません。")
-    st.stop()
-
-# 3. UIと問題生成
+# 【改善】問題選択機能（APIを使わないので一瞬で表示されます）
 st.header("💡 練習問題を作る")
-if st.button("ランダムに問題を作成する"):
-    with st.spinner('問題を作成中...'):
-        topic_prompt = "IELTS Writing Task 2の練習問題を1つ生成して。アカデミックなトピックでお願いします。"
-        problem = model.generate_content(topic_prompt)
-        st.session_state.problem_text = problem.text
+if st.button("ランダムに問題を出題"):
+    # リストから1つ選ぶ
+    st.session_state.problem_text = random.choice(IELTS_QUESTIONS)
 
 if "problem_text" in st.session_state:
     st.info(f"### 本日のお題:\n{st.session_state.problem_text}")
