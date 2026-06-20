@@ -27,18 +27,29 @@ uploaded_file = st.file_uploader("手書きのノート写真をアップロー�
 if st.button("添削開始"):
     response_text = ""
     
-    # 1. 写真がアップロードされている場合
+   # 添削用プロンプト（通常用とスタイル反映用）
+    prompt_normal = "このIELTSのライティングを添削して。Bandスコアと改善点を表示して。"
+    prompt_style = f"この英文を、以下のこだわり・スラングを反映させて添削して。こだわり: {style_input}。Bandスコアと改善点を表示して。"
+
+    # 1. 写真がある場合
     if uploaded_file is not None:
         image = Image.open(uploaded_file)
-        response = model.generate_content(["このIELTSのライティングを添削して。Bandスコアと改善点を表示して。", image])
-        response_text = response.text
-        log_data = [datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), user_name, "Writing", "写真データ", response_text, "完了"]
-    
-    # 2. テキストが入力されている場合
+        
+        # 通常の添削
+        st.subheader("【通常のIELTS添削】")
+        res1 = model.generate_content([prompt_normal, image])
+        st.write(res1.text)
+        
+        # こだわり反映の添削
+        st.subheader("【こだわり反映版】")
+        res2 = model.generate_content([prompt_style, image])
+        st.write(res2.text)
+        
+        response_text = res1.text + "\n\n---\n\n" + res2.text
+
+    # 2. テキストがある場合（elif text_input: の中も同様にres1, res2を作る）
     elif text_input:
-        response = model.generate_content(["このIELTSのライティングを添削して。Bandスコアと改善点を表示して。", text_input])
-        response_text = response.text
-        log_data = [datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), user_name, "Writing", text_input, response_text, "完了"]
+        # ... (画像の場合と全く同じように、res1とres2をst.writeする)
     
     else:
         st.warning("写真か英文のどちらかを入力してください！")
