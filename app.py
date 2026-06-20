@@ -3,22 +3,7 @@ import google.generativeai as genai
 from PIL import Image
 import random
 
-# AIの設定：モデル名を自動検索せず、直接指定します
-@st.cache_resource
-def get_ai_model():
-    genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
-    
-    # 確実なモデル名を直接指定します。もしこれでもダメな場合は
-    # 'gemini-1.5-flash' を 'gemini-pro' や 'gemini-1.5-pro' に書き換えて試してください。
-    model_name = "gemini-1.5-flash"
-    
-    st.write(f"モデル名を {model_name} に固定設定しました") 
-    return genai.GenerativeModel(model_name)
-
-model = get_ai_model()
-
-
-# 30問の完全リスト
+# 1. 問題リスト
 IELTS_QUESTIONS = [
     "Some people think that the best way to reduce crime is to give longer prison sentences. Discuss both views and give your opinion.",
     "Nowadays, many people work from home. What are the advantages and disadvantages of this trend?",
@@ -52,15 +37,16 @@ IELTS_QUESTIONS = [
     "Some people think that all university students should study a science subject. Do you agree or disagree?"
 ]
 
-# AIの設定
+# 2. AIの設定（関数は1つだけに整理）
 @st.cache_resource
 def get_ai_model():
     genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
+    # 安定したモデル名を直接指定
     return genai.GenerativeModel('gemini-1.5-flash')
 
 model = get_ai_model()
 
-# UI
+# 3. UI表示
 st.title("IELTS Writing AI添削")
 
 if st.button("ランダムに問題を出題"):
@@ -69,7 +55,7 @@ if st.button("ランダムに問題を出題"):
 if "problem_text" in st.session_state:
     st.info(f"### 本日のお題:\n{st.session_state.problem_text}")
 
-# 入力欄を復活
+# 入力欄
 user_name = st.text_input("ユーザー名を入力")
 style_input = st.text_input("使いたい文法やスラング、理想のスタイルを入力 (任意)")
 text_input = st.text_area("直接英文を入力して添削")
@@ -80,8 +66,7 @@ if st.button("添削開始"):
         st.warning("英文を入力するか、写真をアップロードしてください。")
     else:
         with st.spinner('添削中...'):
-            # スタイル指定をプロンプトに組み込む
-            prompt = f"IELTSのライティングを添削し、Bandスコアと改善点を教えて。ユーザーが目指しているスタイル/文法: {style_input}"
+            prompt = f"IELTSのライティングを添削し、Bandスコアと改善点を教えて。ユーザーの希望スタイル: {style_input}"
             try:
                 if uploaded_file:
                     image = Image.open(uploaded_file)
@@ -93,51 +78,3 @@ if st.button("添削開始"):
                 st.success("添削完了！")
             except Exception as e:
                 st.error(f"エラーが発生しました: {e}")
-
-# 最小構成で確認
-@st.cache_resource
-def get_ai_model():
-    genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
-    # 確実な名前で指定してみます
-    return genai.GenerativeModel('gemini-1.5-flash')
-
-# 読み込みのテスト
-try:
-    model = get_ai_model()
-    st.write("AIモデルの読み込み成功！")
-except Exception as e:
-    st.error(f"APIキーか設定に問題があります: {e}")
-
-# AIの設定：モデル名を自動的に取得します
-@st.cache_resource
-def get_ai_model():
-    genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
-    
-    # 利用可能なモデルを検索して、最初に見つかったものを利用する
-    # これにより、お使いの環境で確実に存在するモデル名が自動選択されます
-    models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
-    
-    if not models:
-        st.error("利用可能なモデルが見つかりません。")
-        return None
-        
-    st.write(f"利用中のモデル: {models[0]}") # 念のため画面に表示
-    return genai.GenerativeModel(models[0])
-
-model = get_ai_model()
-
-@st.cache_resource
-def get_ai_model():
-    genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
-    
-    # 利用可能なモデルのうち、1.5系（確実なもの）だけを絞り込む
-    models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
-    
-    # "gemini-1.5-flash" を優先的に探し、なければ次を探す
-    target_model = "models/gemini-1.5-flash"
-    if target_model not in models:
-        # もし1.5 flashがなければ、1.5 proを探す
-        target_model = "models/gemini-1.5-pro"
-        
-    st.write(f"利用中のモデル: {target_model}")
-    return genai.GenerativeModel(target_model)
