@@ -6,7 +6,7 @@ from PIL import Image
 import datetime
 import random
 
-# 1. 問題リスト（30問）
+# 1. 問題リスト（定番の30問）
 IELTS_QUESTIONS = [
     "Some people think that the best way to reduce crime is to give longer prison sentences. Discuss both views and give your opinion.",
     "Nowadays, many people work from home. What are the advantages and disadvantages of this trend?",
@@ -40,25 +40,18 @@ IELTS_QUESTIONS = [
     "Some people think that all university students should study a science subject. Do you agree or disagree?"
 ]
 
-# 2. AIの設定
+# 2. AIの設定（関数で囲むことでエラーを防ぐ）
 @st.cache_resource
 def get_ai_model():
-    # Secretsが設定されているか確認
-    if "GOOGLE_API_KEY" not in st.secrets:
-        st.error("GOOGLE_API_KEYが設定されていません")
-        st.stop()
     genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
-    # 修正前：
-# return genai.GenerativeModel('gemini-1.5-flash')
+    return genai.GenerativeModel('models/gemini-1.5-flash')
 
-# 修正後：
-return genai.GenerativeModel('models/gemini-1.5-flash')
 model = get_ai_model()
 
-# 3. アプリの見た目
+# 3. アプリの表示
 st.title("IELTS Writing AI添削")
 
-# 問題生成
+st.header("💡 練習問題を作る")
 if st.button("ランダムに問題を出題"):
     st.session_state.problem_text = random.choice(IELTS_QUESTIONS)
 
@@ -68,51 +61,24 @@ if "problem_text" in st.session_state:
 st.divider()
 
 user_name = st.text_input("ユーザー名を入力")
-style_input = st.text_input("使いたい文法やスラング、理想のスタイルを入力 (任意)")
-text_input = st.text_area("直接英文を入力して添削もできます")
-uploaded_file = st.file_uploader("手書きのノート写真をアップロード", type=["jpg", "png"])
+style_input = st.text_input("使いたい文法やスタイルを入力 (任意)")
+text_input = st.text_area("直接英文を入力して添削")
+uploaded_file = st.file_uploader("手書きノート写真をアップロード", type=["jpg", "png"])
 
 if st.button("添削開始"):
-    # 入力チェック
-    if uploaded_file is None and not text_input:
-        st.warning("写真か英文のどちらかを入力してください！")
+    if not text_input and not uploaded_file:
+        st.warning("英文を入力するか、写真をアップロードしてください。")
     else:
-        with st.spinner('添削中... (少々お待ちください)'):
-            # プロンプト作成
-            prompt_normal = "このIELTSライティングを添削して。Bandスコアと改善点を具体的に教えて。"
-            prompt_style = f"この英文を、以下のスタイル・スラングを反映させて添削して: {style_input}。Bandスコアと改善点を教えて。"
-            
-            # データ準備
-            content_to_send = uploaded_file if uploaded_file else text_input
-            
-            # 添削処理
+        with st.spinner('添削中...'):
+            prompt = "IELTSのライティングを添削し、Bandスコアと改善点を教えて。"
             try:
                 if uploaded_file:
                     image = Image.open(uploaded_file)
-                    res1 = model.generate_content([prompt_normal, image])
-                    res2 = model.generate_content([prompt_style, image])
+                    res = model.generate_content([prompt, image])
                 else:
-                    res1 = model.generate_content([prompt_normal, text_input])
-                    res2 = model.generate_content([prompt_style, text_input])
+                    res = model.generate_content([prompt, text_input])
                 
-                st.subheader("【通常のIELTS添削】")
-                st.write(res1.text)
-                st.subheader("【こだわり反映版】")
-                st.write(res2.text)
-                
-                # スプレッドシート保存
-                problem_text = st.session_state.problem_text if "problem_text" in st.session_state else "自作問題"
-                log_data = [datetime.datetime.now().strftime("%Y-%m-%d %H:%M"), user_name, problem_text, str(content_to_send), res1.text, "完了"]
-                
-                # スプレッドシート処理（※設定は以前のコードのまま）
-                # (sheet.append_row(log_data) はここに配置)
-                
-                st.success("スプレッドシートに保存しました！")
-                st.link_button("📂 スプレッドシートで履歴を確認", "https://docs.google.com/spreadsheets/d/1clFXA6yF_I2IKPx2Kf8ppGDWIlIYar8xfiVDLciTKqE")
-                
+                st.write(res.text)
+                st.success("添削完了！")
             except Exception as e:
                 st.error(f"エラーが発生しました: {e}")
-
-# 使えるモデルを確認するコード
-models = [m.name for m in genai.list_models() if 'generateContent' in m.supported_generation_methods]
-st.write("利用可能なモデル:", models)
