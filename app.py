@@ -23,21 +23,25 @@ user_name = st.text_input("ユーザー名を入力")
 uploaded_file = st.file_uploader("手書きのノート写真をアップロード", type=["jpg", "png"])
 
 if st.button("添削開始"):
+    response_text = ""
+    
+    # 1. 写真がアップロードされている場合
     if uploaded_file is not None:
         image = Image.open(uploaded_file)
-        # AIに写真を送って添削してもらう
-        response = model.generate_content(["このIELTSのライティングを添削して。Band Scoreの目安と改善点を教えて。", image])
-        
-        # テキスト入力がある場合
+        response = model.generate_content(["このIELTSのライティングを添削して。Bandスコアと改善点を表示して。", image])
+        response_text = response.text
+    
+    # 2. テキストが入力されている場合
     elif text_input:
-        response = model.generate_content(["このIELTSのライティングを添削して。", text_input])
-        st.write(response.text)
-        
+        response = model.generate_content(["このIELTSのライティングを添削して。Bandスコアと改善点を表示して。", text_input])
+        response_text = response.text
+    
     else:
         st.warning("写真か英文のどちらかを入力してください！")
-        
-        # 結果を表示
-        st.write(response.text)
+
+    # 結果を表示
+    if response_text:
+        st.write(response_text)
         
         # スプレッドシートに保存
         date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
