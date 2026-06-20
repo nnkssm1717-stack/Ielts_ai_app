@@ -1,12 +1,9 @@
 import streamlit as st
-import gspread
-from oauth2client.service_account import ServiceAccountCredentials
 import google.generativeai as genai
 from PIL import Image
-import datetime
 import random
 
-# 1. 問題リスト（定番の30問）
+# 30問の完全リスト
 IELTS_QUESTIONS = [
     "Some people think that the best way to reduce crime is to give longer prison sentences. Discuss both views and give your opinion.",
     "Nowadays, many people work from home. What are the advantages and disadvantages of this trend?",
@@ -40,30 +37,25 @@ IELTS_QUESTIONS = [
     "Some people think that all university students should study a science subject. Do you agree or disagree?"
 ]
 
-# 2. AIの設定（関数で囲むことでエラーを防ぐ）
+# AIの設定
 @st.cache_resource
 def get_ai_model():
     genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
-    return genai.GenerativeModel('models/gemini-1.5-flash')
+    return genai.GenerativeModel('gemini-1.5-flash')
 
 model = get_ai_model()
 
-# 3. アプリの表示
+# UI
 st.title("IELTS Writing AI添削")
 
-st.header("💡 練習問題を作る")
 if st.button("ランダムに問題を出題"):
     st.session_state.problem_text = random.choice(IELTS_QUESTIONS)
 
 if "problem_text" in st.session_state:
     st.info(f"### 本日のお題:\n{st.session_state.problem_text}")
 
-st.divider()
-
-user_name = st.text_input("ユーザー名を入力")
-style_input = st.text_input("使いたい文法やスタイルを入力 (任意)")
 text_input = st.text_area("直接英文を入力して添削")
-uploaded_file = st.file_uploader("手書きノート写真をアップロード", type=["jpg", "png"])
+uploaded_file = st.file_uploader("ノート写真をアップロード", type=["jpg", "png"])
 
 if st.button("添削開始"):
     if not text_input and not uploaded_file:
