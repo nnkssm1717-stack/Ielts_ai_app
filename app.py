@@ -1,3 +1,6 @@
+st.write("読み込めたSecretsのキー一覧:")
+st.write(list(st.secrets.keys()))
+st.stop() 
 import streamlit as st
 import json
 import gspread
