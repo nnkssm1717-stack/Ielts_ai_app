@@ -1,1 +1,5 @@
 gspread
+gspread
+oauth2client
+google-generativeai
+Pillow
