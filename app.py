@@ -48,8 +48,7 @@ def get_ai_model():
         st.error("GOOGLE_API_KEYが設定されていません")
         st.stop()
     genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
-    return genai.GenerativeModel('gemini-1.5-flash')
-
+    return genai.GenerativeModel('models/gemini-1.5-flash')
 model = get_ai_model()
 
 # 3. アプリの見た目
