@@ -3,67 +3,67 @@ import google.generativeai as genai
 from PIL import Image
 import random
 
-# APIキー設定（StreamlitのSecretsから読み込み）
-genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
-model = genai.GenerativeModel('gemini-1.5-flash')
+# セキュリティチェック：Secretsの有無を確認
+if "GOOGLE_API_KEY" not in st.secrets:
+    st.error("エラー: Secretsに 'GOOGLE_API_KEY' が設定されていません。Manage app > Settings > Secrets で設定してください。")
+    st.stop()
 
-# 20問のIELTSライティング問題リスト
-IELTS_QUESTIONS = [
+# API設定
+genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
+
+@st.cache_resource
+def get_model():
+    return genai.GenerativeModel('gemini-1.5-flash')
+
+model = get_model()
+
+# 20問の問題リスト
+QUESTIONS = [
     "Some people think that the best way to reduce crime is to give longer prison sentences. Discuss both views.",
-    "Nowadays, many people work from home. What are the advantages and disadvantages of this trend?",
-    "Global warming is one of the most serious issues. What measures should governments take to solve this?",
+    "Nowadays, many people work from home. What are the advantages and disadvantages?",
+    "Global warming is a serious issue. What measures should governments take?",
     "Should schools teach students how to manage their money? Give reasons.",
-    "Is it better for children to grow up in the city or in the countryside? Discuss.",
-    "Do you think that the news media has too much influence on people's opinions?",
-    "Some people think that governments should ban dangerous sports. To what extent do you agree?",
-    "Is it important for students to study history? Give reasons for your answer.",
-    "Some people believe that everyone should be a vegetarian. Do you agree or disagree?",
-    "The increase in the number of cars is causing serious traffic problems. What solutions can you suggest?",
-    "Do you think that public transport should be free of charge? Give your reasons.",
-    "Some people think that university education should be free. To what extent do you agree?",
-    "Advertising influences our choices. Is this a positive or negative development?",
-    "Should elderly people be cared for by their families or by the state?",
-    "Many people now have to live in small apartments. How does this affect people's lives?",
-    "Is it important for people to learn about the culture of other countries?",
-    "Some people think that sports stars earn too much money. Do you agree or disagree?",
-    "The main purpose of a building should be to be useful, not beautiful. Do you agree?",
-    "Do you think that the development of technology has improved our lives?",
-    "Some people believe that parents should teach children how to be good members of society. Do you agree?"
+    "Is it better to grow up in the city or the countryside?",
+    "Does the news media have too much influence on people's opinions?",
+    "Should governments ban dangerous sports? To what extent do you agree?",
+    "Is it important for students to study history? Give reasons.",
+    "Should everyone be a vegetarian? Do you agree or disagree?",
+    "Traffic problems are increasing. What solutions can you suggest?",
+    "Should public transport be free? Give your reasons.",
+    "Should university education be free? To what extent do you agree?",
+    "Advertising influences our choices. Is this positive or negative?",
+    "Should elderly people be cared for by families or the state?",
+    "Living in small apartments: How does this affect people's lives?",
+    "Is it important to learn about other cultures?",
+    "Do sports stars earn too much money? Do you agree or disagree?",
+    "Buildings should be useful, not beautiful. Do you agree or disagree?",
+    "Has technology improved our lives or made them complicated?",
+    "Should parents teach children to be good members of society?"
 ]
 
 st.title("IELTS Writing AI添削")
 
-# ランダム出題機能
 if st.button("ランダムに問題を出題"):
-    st.session_state.problem_text = random.choice(IELTS_QUESTIONS)
+    st.session_state.prob = random.choice(QUESTIONS)
 
-if "problem_text" in st.session_state:
-    st.info(f"### 本日のお題:\n{st.session_state.problem_text}")
+if "prob" in st.session_state:
+    st.info(f"### お題:\n{st.session_state.prob}")
 
-# 入力項目
-style_input = st.text_input("目指すスタイル（文法・スラング等）を入力")
-text_input = st.text_area("直接英文を入力")
-uploaded_file = st.file_uploader("ノート写真をアップロード", type=["jpg", "png"])
+style = st.text_input("目指すスタイル（文法・スラング等）")
+text = st.text_area("英文を入力")
+file = st.file_uploader("写真をアップロード", type=["jpg", "png"])
 
-# 添削処理
 if st.button("添削開始"):
-    if not text_input and not uploaded_file:
-        st.warning("内容を入力するか、写真をアップロードしてください。")
+    if not text and not file:
+        st.warning("入力してください。")
     else:
-        with st.spinner('AIが添削中です...'):
+        with st.spinner('添削中...'):
             try:
-                prompt = f"あなたはIELTSの試験官です。以下の英文を添削し、Bandスコアと改善点を具体的に教えてください。希望スタイル: {style_input}"
-                
-                if uploaded_file:
-                    img = Image.open(uploaded_file)
-                    response = model.generate_content([prompt, img])
+                p = f"IELTSの試験官として、この英文を添削し、Bandスコアと改善点を教えて。スタイル: {style}"
+                if file:
+                    res = model.generate_content([p, Image.open(file)])
                 else:
-                    response = model.generate_content([prompt, text_input])
-                
-                st.markdown("### 添削結果:")
-                st.write(response.text)
-                st.success("添削完了！")
+                    res = model.generate_content([p, text])
+                st.write(res.text)
             except Exception as e:
-                st.error(f"エラーが発生しました: {e}")
-            except Exception as e:
-                st.error(f"エラー: {e}")
+                st.error(f"APIエラー: {e}")
