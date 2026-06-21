@@ -53,7 +53,8 @@ IELTS_QUESTIONS = [
 def get_ai_model():
     genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
     # 自動検索を使わず、確実に存在するモデルを指定
-    return genai.GenerativeModel('gemini-1.5-flash')
+    # 'gemini-1.5-flash' ではなく、こちらに変えてみてください
+return genai.GenerativeModel('gemini-1.0-pro')
 
 model = get_ai_model()
 
