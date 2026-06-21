@@ -1,5 +1,16 @@
 import streamlit as st
 import google.generativeai as genai
+
+@st.cache_resource
+def check_available_models():
+    genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
+    # 利用可能なモデル一覧を全て取得して表示
+    models = genai.list_models()
+    return [m.name for m in models if 'generateContent' in m.supported_generation_methods]
+
+# アプリの冒頭でモデル名を表示する
+st.write("利用可能なモデルリスト:", check_available_models())
+
 from PIL import Image
 import random
 
