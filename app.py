@@ -107,7 +107,7 @@ col1, col2 = st.columns(2)
 with col1:
     target_score = st.selectbox("目標Bandスコア", ["5.5", "6.0", "6.5", "7.0", "7.5", "8.0"])
 with col2:
-    style_input = st.text_input("理想のスタイル（例：フォーマル、論理的）")
+    style_input = st.text_input("理想のスタイル（例：スラング、カジュアル、フォーマル、論理的、アカデミック）")
 
 text_input = st.text_area("英文を入力")
 uploaded_file = st.file_uploader("写真をアップロード", type=["jpg", "png"])
