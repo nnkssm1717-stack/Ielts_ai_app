@@ -35,8 +35,12 @@ def _retry_seconds(e, default=25):
     return default
 
 
-def generate_with_retry(contents, max_retries=2):
-    """429（無料枠のレート上限）に当たったら待って自動リトライしつつ生成する。"""
+def generate_with_retry(contents, max_retries=1):
+    """429（無料枠のレート上限）に当たったら、サーバー指定の待機後に一度だけ再試行する。
+
+    1分あたりの上限に対しては、リトライ回数を増やすほど同じ60秒窓で
+    リクエストを消費して逆効果になるため、再試行は1回だけにしている。
+    """
     for attempt in range(max_retries + 1):
         try:
             return model.generate_content(contents)
@@ -46,7 +50,7 @@ def generate_with_retry(contents, max_retries=2):
             wait = _retry_seconds(e)
             st.warning(
                 f"無料枠の上限（1分あたりのリクエスト数）に達しました。"
-                f"{wait}秒待って自動で再試行します…（{attempt + 1}/{max_retries}）"
+                f"{wait}秒待って一度だけ自動で再試行します…"
             )
             time.sleep(wait)
 
