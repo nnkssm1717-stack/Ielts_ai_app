@@ -1,4 +1,5 @@
 import streamlit as st
+import streamlit.components.v1 as components
 import google.generativeai as genai
 from PIL import Image
 import random
@@ -253,15 +254,45 @@ TARGET_WORDS = 250  # IELTS Writing Task 2 の目安語数
 
 text_input = st.text_area("英文を入力", height=200)
 
-# --- 単語数カウント（目安 250 語に対する進捗） ---
-word_count = len(text_input.split())
-st.progress(min(word_count / TARGET_WORDS, 1.0))
-if word_count == 0:
-    st.caption(f"📝 単語数: 0 / {TARGET_WORDS}")
-elif word_count < TARGET_WORDS:
-    st.caption(f"📝 単語数: **{word_count}** / {TARGET_WORDS}（目安まであと {TARGET_WORDS - word_count} 語）")
-else:
-    st.caption(f"📝 単語数: **{word_count}** / {TARGET_WORDS} ✅ 目安に到達")
+# --- 単語数カウント（入力中＝1キーごとに更新） ---
+# Streamlit標準の text_area は「フォーカスが外れた時」しか値を確定しないため、
+# ブラウザ側のJSで本物の入力欄(textarea)の input イベントを直接監視して更新する。
+components.html(
+    f"""
+    <div id="wc-box" style="font-family: 'Source Sans Pro', sans-serif; color:#555;">
+      <div id="wc-text" style="font-size:0.85rem; margin-bottom:4px;">📝 単語数: 0 / {TARGET_WORDS}</div>
+      <div style="background:#e6e9ef; border-radius:6px; height:8px; width:100%; overflow:hidden;">
+        <div id="wc-bar" style="background:#4c8bf5; height:8px; width:0%; transition:width .1s;"></div>
+      </div>
+    </div>
+    <script>
+      const TARGET = {TARGET_WORDS};
+      function findTextarea() {{
+        try {{
+          return window.parent.document.querySelector('textarea[aria-label="英文を入力"]');
+        }} catch (e) {{ return null; }}
+      }}
+      function update() {{
+        const txt = document.getElementById('wc-text');
+        const bar = document.getElementById('wc-bar');
+        const ta = findTextarea();
+        if (!ta) {{ txt.textContent = '（単語数を表示できませんでした）'; return; }}
+        const v = ta.value.trim();
+        const n = v === '' ? 0 : v.split(/\\s+/).length;
+        bar.style.width = Math.min(n / TARGET * 100, 100) + '%';
+        bar.style.background = n >= TARGET ? '#2ecc71' : '#4c8bf5';
+        if (n === 0) txt.textContent = '📝 単語数: 0 / ' + TARGET;
+        else if (n < TARGET) txt.textContent = '📝 単語数: ' + n + ' / ' + TARGET + '（あと ' + (TARGET - n) + ' 語）';
+        else txt.textContent = '📝 単語数: ' + n + ' / ' + TARGET + ' ✅ 目安に到達';
+      }}
+      const ta = findTextarea();
+      if (ta) {{ ta.addEventListener('input', update); ta.addEventListener('keyup', update); }}
+      update();
+      setInterval(update, 400);  // 貼り付け・IME・再描画への保険
+    </script>
+    """,
+    height=55,
+)
 
 uploaded_file = st.file_uploader("写真をアップロード", type=["jpg", "png"])
 
