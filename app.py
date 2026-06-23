@@ -203,6 +203,12 @@ selected_model = st.sidebar.selectbox(
     "使用モデル", options, index=options.index(recommended_id), format_func=_fmt
 )
 
+# このAPIキーで使えるモデル数（list_models の結果から判定）
+if available:
+    st.sidebar.caption(f"🔑 このキーで使えるモデル: {len(available)} 種類")
+else:
+    st.sidebar.caption("🔑 モデル一覧を取得できませんでした（APIキーを確認してください）")
+
 # 選択中モデルの情報
 info = MODEL_CATALOG.get(selected_model)
 if info:
@@ -243,7 +249,20 @@ with col2:
     )
     style_input = st.text_input("理想のスタイル", label_visibility="collapsed")
 
-text_input = st.text_area("英文を入力")
+TARGET_WORDS = 250  # IELTS Writing Task 2 の目安語数
+
+text_input = st.text_area("英文を入力", height=200)
+
+# --- 単語数カウント（目安 250 語に対する進捗） ---
+word_count = len(text_input.split())
+st.progress(min(word_count / TARGET_WORDS, 1.0))
+if word_count == 0:
+    st.caption(f"📝 単語数: 0 / {TARGET_WORDS}")
+elif word_count < TARGET_WORDS:
+    st.caption(f"📝 単語数: **{word_count}** / {TARGET_WORDS}（目安まであと {TARGET_WORDS - word_count} 語）")
+else:
+    st.caption(f"📝 単語数: **{word_count}** / {TARGET_WORDS} ✅ 目安に到達")
+
 uploaded_file = st.file_uploader("写真をアップロード", type=["jpg", "png"])
 
 if st.button("添削開始"):
