@@ -3,8 +3,10 @@ import google.generativeai as genai
 from PIL import Image
 import random
 import datetime
+import time
 import gspread
 from google.oauth2.service_account import Credentials
+from google.api_core import exceptions as gexc
 
 # ============================================================
 # セキュリティチェック：Secretsの有無を確認
@@ -127,11 +129,21 @@ if "prob" in st.session_state:
     st.info(f"### お題:\n{st.session_state.prob}")
 
 # --- 設定項目 ---
+# ラベルの行数差（右は折り返して2行）で入力欄がずれないよう、ラベル高さを揃える
+LABEL_STYLE = "min-height:3em; display:flex; align-items:flex-end; font-size:0.875rem; margin-bottom:0.25rem;"
 col1, col2 = st.columns(2)
 with col1:
-    target_score = st.selectbox("目標Bandスコア", ["5.5", "6.0", "6.5", "7.0", "7.5", "8.0"])
+    st.markdown(f"<div style='{LABEL_STYLE}'>目標Bandスコア</div>", unsafe_allow_html=True)
+    target_score = st.selectbox(
+        "目標Bandスコア", ["5.5", "6.0", "6.5", "7.0", "7.5", "8.0"],
+        label_visibility="collapsed",
+    )
 with col2:
-    style_input = st.text_input("理想のスタイル（例：スラング、カジュアル、フォーマル、論理的、アカデミック）")
+    st.markdown(
+        f"<div style='{LABEL_STYLE}'>理想のスタイル（例：スラング、カジュアル、フォーマル、論理的、アカデミック）</div>",
+        unsafe_allow_html=True,
+    )
+    style_input = st.text_input("理想のスタイル", label_visibility="collapsed")
 
 text_input = st.text_area("英文を入力")
 uploaded_file = st.file_uploader("写真をアップロード", type=["jpg", "png"])
@@ -158,9 +170,9 @@ if st.button("添削開始"):
             """
             try:
                 if uploaded_file:
-                    res = model.generate_content([prompt, Image.open(uploaded_file)])
+                    res = generate_with_retry([prompt, Image.open(uploaded_file)])
                 else:
-                    res = model.generate_content([prompt, text_input])
+                    res = generate_with_retry([prompt, text_input])
                 st.markdown("---")
                 st.write(res.text)
 
@@ -172,5 +184,10 @@ if st.button("添削開始"):
                 else:
                     st.warning(f"添削は完了しましたが、スプレッドシート保存に失敗しました: {err}")
 
+            except gexc.ResourceExhausted:
+                st.error(
+                    "無料枠のレート上限（1分あたりのリクエスト数）に達しました。"
+                    "1分ほど待ってから、もう一度「添削開始」を押してください。"
+                )
             except Exception as e:
                 st.error(f"エラー: {e}")
