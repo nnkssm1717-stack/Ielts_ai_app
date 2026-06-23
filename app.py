@@ -25,6 +25,30 @@ def get_model():
 model = get_model()
 
 
+def _retry_seconds(e, default=25):
+    """例外に retry_delay があればその秒数、無ければ既定値を返す。"""
+    rd = getattr(e, "retry_delay", None)
+    if rd is not None and getattr(rd, "seconds", 0):
+        return rd.seconds + 1
+    return default
+
+
+def generate_with_retry(contents, max_retries=2):
+    """429（無料枠のレート上限）に当たったら待って自動リトライしつつ生成する。"""
+    for attempt in range(max_retries + 1):
+        try:
+            return model.generate_content(contents)
+        except gexc.ResourceExhausted as e:
+            if attempt >= max_retries:
+                raise
+            wait = _retry_seconds(e)
+            st.warning(
+                f"無料枠の上限（1分あたりのリクエスト数）に達しました。"
+                f"{wait}秒待って自動で再試行します…（{attempt + 1}/{max_retries}）"
+            )
+            time.sleep(wait)
+
+
 # ============================================================
 # Googleスプレッドシート接続
 # ============================================================
