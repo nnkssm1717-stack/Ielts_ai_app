@@ -19,12 +19,52 @@ if "GOOGLE_API_KEY" not in st.secrets:
 genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
 
 
+# ============================================================
+# モデル設定（無料枠のめやす・おすすめ）
+# ============================================================
+# 無料枠の数値は変動するため、ここはあくまで参考値。正確な上限はアカウント/時期で
+# 変わるので AI Studio (https://aistudio.google.com/rate-limit) で確認すること。
+RATE_LIMIT_NOTE_DATE = "2026年6月時点の参考値"
+
+# キーは Gemini のモデルID。表示はこの並び順（上ほど新しさ・推奨度が高い）。
+MODEL_CATALOG = {
+    "gemini-3-flash": {
+        "label": "Gemini 3 Flash",
+        "free": "約10 RPM / 25万 TPM / 1,500 RPD",
+        "note": "新しめで精度と無料枠のバランスが良い。",
+        "recommended": True,
+    },
+    "gemini-2.5-flash": {
+        "label": "Gemini 2.5 Flash",
+        "free": "約5 RPM（環境による）",
+        "note": "高精度だが1分あたりの無料枠が小さめ。",
+        "recommended": False,
+    },
+    "gemini-2.5-flash-lite": {
+        "label": "Gemini 2.5 Flash-Lite",
+        "free": "RPM多め / 精度は軽め",
+        "note": "とにかく回数を稼ぎたいとき向き。",
+        "recommended": False,
+    },
+}
+
+
 @st.cache_resource
-def get_model():
-    return genai.GenerativeModel('gemini-2.5-flash')
+def get_model(model_name):
+    return genai.GenerativeModel(model_name)
 
 
-model = get_model()
+@st.cache_data(ttl=3600)
+def list_available_models():
+    """generateContent対応モデル名（'models/'接頭辞なし）の一覧。取得失敗時は空リスト。"""
+    try:
+        return [
+            m.name.replace("models/", "")
+            for m in genai.list_models()
+            if "generateContent" in m.supported_generation_methods
+        ]
+    except Exception:
+        return []
 
 
 def _retry_seconds(e, default=25):
@@ -35,7 +75,7 @@ def _retry_seconds(e, default=25):
     return default
 
 
-def generate_with_retry(contents, max_retries=1):
+def generate_with_retry(model, contents, max_retries=1):
     """429（無料枠のレート上限）に当たったら、サーバー指定の待機後に一度だけ再試行する。
 
     1分あたりの上限に対しては、リトライ回数を増やすほど同じ60秒窓で
@@ -132,6 +172,60 @@ if st.button("ランダムに問題を出題"):
 if "prob" in st.session_state:
     st.info(f"### お題:\n{st.session_state.prob}")
 
+# --- サイドバー：モデル選択 ---
+st.sidebar.header("⚙️ モデル設定")
+
+available = list_available_models()
+# 表示候補：カタログ順で実在するもの → カタログ外の実在モデル
+preferred = [m for m in MODEL_CATALOG if (not available) or (m in available)]
+others = [m for m in available if m not in MODEL_CATALOG]
+options = preferred + others
+if not options:
+    options = list(MODEL_CATALOG.keys())
+
+# 現在のおすすめ：実在する中で recommended=True の最上位、無ければ先頭
+recommended_id = next(
+    (m for m in options if MODEL_CATALOG.get(m, {}).get("recommended")),
+    options[0],
+)
+
+
+def _model_label(model_id):
+    return MODEL_CATALOG.get(model_id, {}).get("label", model_id)
+
+
+def _fmt(model_id):
+    label = _model_label(model_id)
+    return f"{label} ⭐おすすめ" if model_id == recommended_id else label
+
+
+selected_model = st.sidebar.selectbox(
+    "使用モデル", options, index=options.index(recommended_id), format_func=_fmt
+)
+
+# 選択中モデルの情報
+info = MODEL_CATALOG.get(selected_model)
+if info:
+    st.sidebar.caption(f"📊 無料枠の目安：{info['free']}")
+    st.sidebar.caption(info["note"])
+else:
+    st.sidebar.caption("このモデルの無料枠情報は未登録です。AI Studio で確認してください。")
+
+st.sidebar.success(f"⭐ 現在のおすすめ：{_model_label(recommended_id)}")
+
+with st.sidebar.expander("モデル別 無料枠のめやす"):
+    rows = ["| モデル | 無料枠の目安 |", "|---|---|"]
+    for m in options:
+        meta = MODEL_CATALOG.get(m)
+        if meta:
+            star = "⭐ " if m == recommended_id else ""
+            rows.append(f"| {star}{meta['label']} | {meta['free']} |")
+    st.markdown("\n".join(rows))
+    st.caption(f"※{RATE_LIMIT_NOTE_DATE}。実際の上限は時期・アカウントで変動します。")
+    st.markdown("[AI Studio で自分の上限を確認](https://aistudio.google.com/rate-limit)")
+
+model = get_model(selected_model)
+
 # --- 設定項目 ---
 # ラベルの行数差（右は折り返して2行）で入力欄がずれないよう、ラベル高さを揃える
 LABEL_STYLE = "min-height:3em; display:flex; align-items:flex-end; font-size:0.875rem; margin-bottom:0.25rem;"
@@ -174,9 +268,9 @@ if st.button("添削開始"):
             """
             try:
                 if uploaded_file:
-                    res = generate_with_retry([prompt, Image.open(uploaded_file)])
+                    res = generate_with_retry(model, [prompt, Image.open(uploaded_file)])
                 else:
-                    res = generate_with_retry([prompt, text_input])
+                    res = generate_with_retry(model, [prompt, text_input])
                 st.markdown("---")
                 st.write(res.text)
 
