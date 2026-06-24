@@ -139,7 +139,20 @@ def save_to_sheet(question, target_score, style, user_input, result):
 # ============================================================
 # 問題リスト（20問）
 # ============================================================
-QUESTIONS = [
+# Task 1 と Task 2 のリストを分ける
+TASK1_QUESTIONS = [
+    "Task 1: The bar chart shows the spending on five categories in 2025. Summarize.",
+    "Task 1: The table compares the number of students in three courses 2020-2025.",
+    "Task 1: The line graph shows changes in oil production from 1990 to 2010.",
+    "Task 1: The pie chart shows the reasons for choosing to move to a new city.",
+    "Task 1: The diagram illustrates the process of making recycled paper.",
+    "Task 1: The map shows the changes in a village center between 1995 and 2015.",
+    "Task 1: The bar chart shows the number of visitors to different museums.",
+    "Task 1: The table indicates the main causes of land degradation worldwide.",
+    "Task 1: The graph shows the employment rates in three different sectors.",
+    "Task 1: The chart shows the energy consumption in different types of households."
+]
+TASK2_QUESTIONS = [
     "Some people think that the best way to reduce crime is to give longer prison sentences. Discuss both views.",
     "Nowadays, many people work from home. What are the advantages and disadvantages?",
     "Global warming is a serious issue. What measures should governments take?",
@@ -168,10 +181,19 @@ QUESTIONS = [
 st.title("IELTS Writing AI添削")
 
 if st.button("ランダムに問題を出題"):
-    st.session_state.prob = random.choice(QUESTIONS)
+    # タスクタイプをランダムに決定
+    st.session_state.task_type = random.choice(["Task 1", "Task 2"])
+    
+    # 決定したタスクに応じて問題を抽出
+    if st.session_state.task_type == "Task 1":
+        st.session_state.prob = random.choice(TASK1_QUESTIONS)
+    else:
+        st.session_state.prob = random.choice(TASK2_QUESTIONS)
 
 if "prob" in st.session_state:
-    st.info(f"### お題:\n{st.session_state.prob}")
+    st.info(f"### お題 ({st.session_state.task_type}):\n{st.session_state.prob}")
+    if st.session_state.task_type == "Task 1":
+        st.warning("⚠️ Task 1です。グラフや表の画像（またはデータ詳細）を参考にしてください。")
 
 # --- サイドバー：モデル選択 ---
 st.sidebar.header("⚙️ モデル設定")
