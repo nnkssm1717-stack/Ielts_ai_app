@@ -99,7 +99,7 @@ def generate_with_retry(model, contents, max_retries=1):
 # ============================================================
 # Googleスプレッドシート接続
 # ============================================================
-HEADER = ["日時", "お題", "目標スコア", "スタイル", "入力内容", "添削結果"]
+HEADER = ["日時", "タスクタイプ", "問題文", "目標スコア", "スタイル", "回答", "添削結果"]
 
 
 @st.cache_resource
@@ -122,15 +122,22 @@ def get_worksheet():
     return ws
 
 
-def save_to_sheet(question, target_score, style, user_input, result):
+def save_to_sheet(task_type, question, target_score, style, user_input, result):
     """添削結果を1行追記する。成功なら(True, None)、失敗なら(False, エラー文字列)。"""
     try:
         ws = get_worksheet()
         now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        ws.append_row(
-            [now, question, target_score, style, user_input, result],
-            value_input_option="USER_ENTERED",
-        )
+        
+        # いただいたリストの並び順で書き込みます
+        ws.append_row([
+            now,           # A: 日時
+            task_type,     # B: タスクタイプ
+            question,      # C: 問題文
+            target_score,  # D: 目標スコア
+            style,         # E: スタイル
+            user_input,    # F: 回答
+            result         # G: 添削結果
+        ])
         return True, None
     except Exception as e:
         return False, str(e)
@@ -350,11 +357,10 @@ if st.button("添削開始"):
             
                 # --- スプレッドシートへ保存 ---
 try:
-            # 1. データの準備（画像アップロード機能を使わない場合はtext_inputのみにする）
+            # 入力データの準備
             user_input_data = text_input if text_input else "入力なし"
             
-            # 2. 関数を1回だけ呼び出す
-            # 関数内で ws.append_row が実行されるので、ここでは呼び出すだけでOK
+            # 関数を1回だけ呼び出す
             ok, err = save_to_sheet(
                 task_type, 
                 st.session_state.prob, 
@@ -370,16 +376,7 @@ if ok:
 else:
     st.warning(f"添削は完了しましたが、スプレッドシート保存に失敗しました: {err}")
 
-# コード内の該当箇所
-ws.append_row([
-    now,            # A: 日時
-    task_type,      # B: タスクタイプ
-    question,       # C: 問題文
-    target_score,   # D: 目標スコア
-    style,          # E: スタイル
-    user_input,     # F: 回答
-    result          # G: 添削結果
-])
+
 
             except gexc.ResourceExhausted:
                 st.error(
