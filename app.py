@@ -357,8 +357,15 @@ if st.button("添削開始"):
             """
             # 2. AIによる添削を実行
             res = model.generate_content(prompt) 
+            # ★ここが重要：AIの結果が取れているか確認
+                if not res or not res.text:
+                    st.error("AIからの回答が取得できませんでした。もう一度試してください。")
+                else:
+                    # 3. 添削結果を表示（保存の前に行うのがスムーズです）
+                    st.markdown("### 添削結果")
+                    st.write(res.text)
 
-            # 3. スプレッドシートへ保存
+            # 4. スプレッドシートへ保存
             try:
                 user_input_data = text_input if text_input else f"画像アップロード: {uploaded_file.name if uploaded_file else 'なし'}"
                     
@@ -383,6 +390,4 @@ if st.button("添削開始"):
                 )
             except Exception as e:
                 st.error(f"エラー: {e}")
-            # 4. 添削結果を表示する（ここに表示用のコードを追記してください）
-                st.markdown("### 添削結果")
-                st.write(res.text)
+        
