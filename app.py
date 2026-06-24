@@ -356,7 +356,7 @@ if st.button("添削開始"):
             5. **語数チェック（目標の{target_words}語に達しているか）**
             """
             # 2. AIによる添削を実行
-                res = model.generate_content(prompt) 
+            res = model.generate_content(prompt) 
 
             # 3. スプレッドシートへ保存
             try:
