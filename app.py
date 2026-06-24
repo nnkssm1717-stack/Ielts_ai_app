@@ -357,7 +357,7 @@ if st.button("添削開始"):
 
                 # --- スプレッドシートへ保存 ---
                 user_input = text_input if text_input else f"（画像アップロード: {uploaded_file.name}）"
-                ok, err = save_to_sheet(task_type, question, target_score, style_input, user_input, res.text)
+                ok, err = save_to_sheet(task_type, st.session_state.prob, target_score, style_input, text_input, res.text)
                 if ok:
                     st.success("スプレッドシートに保存しました。")
                 else:
