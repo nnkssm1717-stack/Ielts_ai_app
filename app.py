@@ -335,11 +335,12 @@ uploaded_file = st.file_uploader("写真をアップロード", type=["jpg", "pn
 if st.button("添削開始"):
     if not text_input and not uploaded_file:
         st.warning("内容を入力してください。")
+    # --- 添削開始ボタンの処理内 ---
     else:
         with st.spinner('AIが詳細分析中...'):
             question = st.session_state.get("prob", "（お題なし）")
 
-            # 指示を具体化（ここがポイント）
+            # 1. プロンプトの作成
             prompt = f"""
             あなたはIELTS専門の試験官です。以下の英文を添削してください。
             お題（設問）: {task_type}
@@ -354,38 +355,34 @@ if st.button("添削開始"):
             4. **目標スコア基準での添削書き換え例**
             5. **語数チェック（目標の{target_words}語に達しているか）**
             """
-            
+            # 2. AIによる添削を実行
+                res = model.generate_content(prompt) 
 
-# --- 1. AIによる添削を実行（これが先！） ---
-# ここでAIの応答を 'res' に代入する
-res = model.generate_content(prompt) 
+            # 3. スプレッドシートへ保存
+            try:
+                user_input_data = text_input if text_input else f"画像アップロード: {uploaded_file.name if uploaded_file else 'なし'}"
+                    
+                ok, err = save_to_sheet(
+                    task_type, 
+                    question, 
+                    target_score, 
+                    style_input, 
+                    user_input_data, 
+                    res.text
+                )
 
-# --- 2. スプレッドシートへ保存（resが作られた後に実行） ---
-# ここは右側に字下げされていてOK（if文やボタンの中なら）
-try:
-    user_input_data = text_input if text_input else "入力なし"
-
-    # ここで初めて 'res' を使う
-    ok, err = save_to_sheet(
-        task_type, 
-        st.session_state.prob, 
-        target_score, 
-        style_input, 
-        user_input_data, 
-        res.text
-    )
-
-    if ok:
-        st.success("スプレッドシートに保存しました。")
-    else:
-        st.warning(f"添削は完了しましたが、保存に失敗しました: {err}")
-
-# この except は、上の try と同じ「左端のライン」に合わせてください！
-
-except gexc.ResourceExhausted:
-    st.error(
-        "無料枠のレート上限（1分あたりのリクエスト数）に達しました。"
-        "1分ほど待ってから、もう一度「添削開始」を押してください。"
-    )
-except Exception as e:
-    st.error(f"エラー: {e}")
+                if ok:
+                    st.success("スプレッドシートに保存しました。")
+                else:
+                    st.warning(f"添削は完了しましたが、保存に失敗しました: {err}")
+                    
+            except gexc.ResourceExhausted:
+                st.error(
+                    "無料枠のレート上限（1分あたりのリクエスト数）に達しました。"
+                    "1分ほど待ってから、もう一度「添削開始」を押してください。"
+                )
+            except Exception as e:
+                st.error(f"エラー: {e}")
+            # 4. 添削結果を表示する（ここに表示用のコードを追記してください）
+                st.markdown("### 添削結果")
+                st.write(res.text)
