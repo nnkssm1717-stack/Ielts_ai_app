@@ -356,16 +356,20 @@ if st.button("添削開始"):
                 st.write(res.text)
 
                 # --- スプレッドシートへ保存 ---
-                user_input = text_input if text_input else f"（画像アップロード: {uploaded_file.name}）"
-                ok, err = save_to_sheet(task_type, st.session_state.prob, target_score, style_input, text_input, res.text)
-                ws = get_worksheet()
-    now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    # ここも6つ（resultを含む）にしてください
-    ws.append_row([now, task_type, st.session_state.prob, target_score, style_input, text_input, res.text])
-                if ok:
-                    st.success("スプレッドシートに保存しました。")
-                else:
-                    st.warning(f"添削は完了しましたが、スプレッドシート保存に失敗しました: {err}")
+# 1. 保存するデータの準備
+user_input_data = text_input if text_input else f"（画像アップロード: {uploaded_file.name if uploaded_file else 'なし'}）"
+
+# 2. 関数を1回だけ呼び出す（これが保存処理の全て）
+# 引数を6つに揃えています
+ok, err = save_to_sheet(task_type, st.session_state.prob, target_score, style_input, user_input_data, res.text)
+
+# 3. 結果の表示
+if ok:
+    st.success("スプレッドシートに保存しました。")
+else:
+    st.warning(f"添削は完了しましたが、スプレッドシート保存に失敗しました: {err}")
+
+# ※ここにあった ws = get_worksheet() や ws.append_row(...) は不要なので削除してください！
 
             except gexc.ResourceExhausted:
                 st.error(
