@@ -355,32 +355,19 @@ if st.button("添削開始"):
             5. **語数チェック（目標の{target_words}語に達しているか）**
             """
             
-               # --- スプレッドシートへ保存 ---
-        try:
-            # 1. 入力データの準備
-            user_input_data = text_input if text_input else "入力なし"
-            
-            # 2. 関数を1回だけ呼び出す
-            ok, err = save_to_sheet(
-                task_type, 
-                st.session_state.prob, 
-                target_score, 
-                style_input, 
-                user_input_data, 
-                res.text
-            )
+              
+            # --- スプレッドシートへ保存 ---
+                user_input = text_input if text_input else f"（画像アップロード: {uploaded_file.name}）"
+                ok, err = save_to_sheet(task_type, question, target_score, style, user_input, res.text)
+                if ok:
+                    st.success("スプレッドシートに保存しました。")
+                else:
+                    st.warning(f"添削は完了しましたが、スプレッドシート保存に失敗しました: {err}")
 
-            # 3. 結果の表示（try の中なので、右側に字下げしてください！）
-            if ok:
-                st.success("スプレッドシートに保存しました。")
-            else:
-                st.warning(f"添削は完了しましたが、保存に失敗しました: {err}")
-
-        # except は try と同じ左端のラインに戻す
-        except gexc.ResourceExhausted:
-            st.error(
-                "無料枠のレート上限（1分あたりのリクエスト数）に達しました。"
-                "1分ほど待ってから、もう一度「添削開始」を押してください。"
-            )
-        except Exception as e:
-            st.error(f"エラー: {e}")
+            except gexc.ResourceExhausted:
+                st.error(
+                    "無料枠のレート上限（1分あたりのリクエスト数）に達しました。"
+                    "1分ほど待ってから、もう一度「添削開始」を押してください。"
+                )
+            except Exception as e:
+                st.error(f"エラー: {e}")
