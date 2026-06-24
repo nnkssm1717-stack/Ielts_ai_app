@@ -369,7 +369,16 @@ if ok:
 else:
     st.warning(f"添削は完了しましたが、スプレッドシート保存に失敗しました: {err}")
 
-# ※ここにあった ws = get_worksheet() や ws.append_row(...) は不要なので削除してください！
+# コード内の該当箇所
+ws.append_row([
+    now,            # A: 日時
+    task_type,      # B: タスクタイプ
+    question,       # C: 問題文
+    target_score,   # D: 目標スコア
+    style,          # E: スタイル
+    user_input,     # F: 回答
+    result          # G: 添削結果
+])
 
             except gexc.ResourceExhausted:
                 st.error(
