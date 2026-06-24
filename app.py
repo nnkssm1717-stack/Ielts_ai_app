@@ -358,32 +358,32 @@ if st.button("添削開始"):
 
 # --- スプレッドシートへ保存 ---
 # ここは右側に字下げされていてOK（if文やボタンの中なら）
-        try:
-            user_input_data = text_input if text_input else "入力なし"
-            ok, err = save_to_sheet(
-                task_type, 
-                st.session_state.prob, 
-                target_score, 
-                style_input, 
-                user_input_data, 
-                res.text
-            )
+try:
+    user_input_data = text_input if text_input else "入力なし"
+    ok, err = save_to_sheet(
+        task_type, 
+        st.session_state.prob, 
+        target_score, 
+        style_input, 
+        user_input_data, 
+        res.text
+    )
 
-            if ok:
-                st.success("スプレッドシートに保存しました。")
-            else:
-                st.warning(f"添削は完了しましたが、保存に失敗しました: {err}")
+    if ok:
+        st.success("スプレッドシートに保存しました。")
+    else:
+        st.warning(f"添削は完了しましたが、保存に失敗しました: {err}")
 
-        # この except は、上の try と同じ「左端のライン」に合わせてください！
-        except gexc.ResourceExhausted:
-            st.error("無料枠のレート上限に達しました。1分待ってください。")
-        except Exception as e:
-            st.error(f"エラー: {e}")
+# この except は、上の try と同じ「左端のライン」に合わせてください！
+except gexc.ResourceExhausted:
+    st.error("無料枠のレート上限に達しました。1分待ってください。")
+except Exception as e:
+    st.error(f"エラー: {e}")
 
-            except gexc.ResourceExhausted:
-                st.error(
-                    "無料枠のレート上限（1分あたりのリクエスト数）に達しました。"
-                    "1分ほど待ってから、もう一度「添削開始」を押してください。"
-                )
-            except Exception as e:
-                st.error(f"エラー: {e}")
+except gexc.ResourceExhausted:
+        st.error(
+            "無料枠のレート上限（1分あたりのリクエスト数）に達しました。"
+            "1分ほど待ってから、もう一度「添削開始」を押してください。"
+        )
+except Exception as e:
+        st.error(f"エラー: {e}")
