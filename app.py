@@ -258,6 +258,11 @@ model = get_model(selected_model)
 # --- 設定項目 ---
 # ラベルの行数差（右は折り返して2行）で入力欄がずれないよう、ラベル高さを揃える
 LABEL_STYLE = "min-height:3em; display:flex; align-items:flex-end; font-size:0.875rem; margin-bottom:0.25rem;"
+
+# タスクタイプが未選択ならデフォルトはTask 2にする
+task_type = st.session_state.get("task_type", "Task 2")
+target_words = 150 if task_type == "Task 1" else 250
+
 col1, col2 = st.columns(2)
 with col1:
     st.markdown(f"<div style='{LABEL_STYLE}'>目標Bandスコア</div>", unsafe_allow_html=True)
@@ -273,6 +278,8 @@ with col2:
     style_input = st.text_input("理想のスタイル", label_visibility="collapsed")
 
 TARGET_WORDS = 250  # IELTS Writing Task 2 の目安語数
+# (既存のラベル等のコードはそのまま)
+st.caption(f"現在のタスク: {task_type} （目安: {target_words}語以上）") # これを追加
 
 text_input = st.text_area("英文を入力", height=200)
 
@@ -328,7 +335,8 @@ if st.button("添削開始"):
             # 指示を具体化（ここがポイント）
             prompt = f"""
             あなたはIELTS専門の試験官です。以下の英文を添削してください。
-            お題（設問）: {question}
+            お題（設問）: {task_type}
+            【目標語数】: {target_words}語以上
             目標スコア: {target_score}
             ユーザーの希望スタイル: {style_input}
 
@@ -337,6 +345,7 @@ if st.button("添削開始"):
             2. **詳細な添削結果** (元の文章と比較してください)
             3. **目標スコアに到達するための具体的な改善ポイント**
             4. **目標スコア基準での添削書き換え例**
+            5. **語数チェック（目標の{target_words}語に達しているか）**
             """
             try:
                 if uploaded_file:
