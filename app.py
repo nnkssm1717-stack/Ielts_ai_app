@@ -357,12 +357,28 @@ if st.button("添削開始"):
             
               
             # --- スプレッドシートへ保存 ---
-                user_input = text_input if text_input else f"（画像アップロード: {uploaded_file.name}）"
-                ok, err = save_to_sheet(task_type, question, target_score, style, user_input, res.text)
-                if ok:
-                    st.success("スプレッドシートに保存しました。")
-                else:
-                    st.warning(f"添削は完了しましたが、スプレッドシート保存に失敗しました: {err}")
+                # --- 1. AIによる添削処理（これが先！） ---
+# ここで res に添削結果が入るようにします
+res = model.generate_content(prompt) 
+
+# --- 2. スプレッドシートへ保存 ---
+try:
+    user_input_data = text_input if text_input else "入力なし"
+    
+    # ここで res.text を使います
+    ok, err = save_to_sheet(
+        task_type, 
+        st.session_state.prob, 
+        target_score, 
+        style_input, 
+        user_input_data, 
+        res.text  # ← ここでエラーが出ていたはずです
+    )
+
+    if ok:
+        st.success("スプレッドシートに保存しました。")
+    else:
+        st.warning(f"添削は完了しましたが、保存に失敗しました: {err}")
 
             except gexc.ResourceExhausted:
                 st.error(
