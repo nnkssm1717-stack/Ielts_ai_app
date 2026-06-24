@@ -358,12 +358,12 @@ if st.button("添削開始"):
             # 2. AIによる添削を実行
             res = model.generate_content(prompt) 
             # ★ここが重要：AIの結果が取れているか確認
-                if not res or not res.text:
-                    st.error("AIからの回答が取得できませんでした。もう一度試してください。")
-                else:
-                    # 3. 添削結果を表示（保存の前に行うのがスムーズです）
-                    st.markdown("### 添削結果")
-                    st.write(res.text)
+            if not res or not res.text:
+                st.error("AIからの回答が取得できませんでした。もう一度試してください。")
+            else:
+                # 3. 添削結果を表示（保存の前に行うのがスムーズです）
+                st.markdown("### 添削結果")
+                st.write(res.text)
 
             # 4. スプレッドシートへ保存
             try:
