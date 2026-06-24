@@ -109,8 +109,8 @@ def get_worksheet():
         "https://www.googleapis.com/auth/spreadsheets",
         "https://www.googleapis.com/auth/drive",
     ]
-    creds = Credentials.from_service_account_info(
-        st.secrets["gcp_service_account"], scopes=scopes
+    creds = Credentials.from_service_account_info(dict(
+        st.secrets), scopes=scopes
     )
     client = gspread.authorize(creds)
     sh = client.open_by_url(st.secrets["spreadsheet_url"])
