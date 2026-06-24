@@ -356,8 +356,7 @@ if st.button("添削開始"):
                 st.write(res.text)
 
                 # --- スプレッドシートへ保存 ---
-# 1. 保存するデータの準備
-user_input_data = text_input if text_input else f"（画像アップロード: {uploaded_file.name if uploaded_file else 'なし'}）"
+user_input = text_input if text_input else f"（画像アップロード: {uploaded_file.name}）"
 
 # 2. 関数を1回だけ呼び出す（これが保存処理の全て）
 # 引数を6つに揃えています
