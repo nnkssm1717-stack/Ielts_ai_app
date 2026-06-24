@@ -347,20 +347,22 @@ if st.button("添削開始"):
             4. **目標スコア基準での添削書き換え例**
             5. **語数チェック（目標の{target_words}語に達しているか）**
             """
-            try:
-                if uploaded_file:
-                    res = generate_with_retry(model, [prompt, Image.open(uploaded_file)])
-                else:
-                    res = generate_with_retry(model, [prompt, text_input])
-                st.markdown("---")
-                st.write(res.text)
-
+            
                 # --- スプレッドシートへ保存 ---
-user_input = text_input if text_input else f"（画像アップロード: {uploaded_file.name}）"
-
-# 2. 関数を1回だけ呼び出す（これが保存処理の全て）
-# 引数を6つに揃えています
-ok, err = save_to_sheet(task_type, st.session_state.prob, target_score, style_input, user_input_data, res.text)
+try:
+            # 1. データの準備（画像アップロード機能を使わない場合はtext_inputのみにする）
+            user_input_data = text_input if text_input else "入力なし"
+            
+            # 2. 関数を1回だけ呼び出す
+            # 関数内で ws.append_row が実行されるので、ここでは呼び出すだけでOK
+            ok, err = save_to_sheet(
+                task_type, 
+                st.session_state.prob, 
+                target_score, 
+                style_input, 
+                user_input_data, 
+                res.text
+            )
 
 # 3. 結果の表示
 if ok:
