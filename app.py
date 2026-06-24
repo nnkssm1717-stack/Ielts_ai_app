@@ -356,10 +356,16 @@ if st.button("添削開始"):
             """
             
 
-# --- スプレッドシートへ保存 ---
+# --- 1. AIによる添削を実行（これが先！） ---
+# ここでAIの応答を 'res' に代入する
+res = model.generate_content(prompt) 
+
+# --- 2. スプレッドシートへ保存（resが作られた後に実行） ---
 # ここは右側に字下げされていてOK（if文やボタンの中なら）
 try:
     user_input_data = text_input if text_input else "入力なし"
+
+    # ここで初めて 'res' を使う
     ok, err = save_to_sheet(
         task_type, 
         st.session_state.prob, 
@@ -375,15 +381,11 @@ try:
         st.warning(f"添削は完了しましたが、保存に失敗しました: {err}")
 
 # この except は、上の try と同じ「左端のライン」に合わせてください！
-except gexc.ResourceExhausted:
-    st.error("無料枠のレート上限に達しました。1分待ってください。")
-except Exception as e:
-    st.error(f"エラー: {e}")
 
 except gexc.ResourceExhausted:
-        st.error(
-            "無料枠のレート上限（1分あたりのリクエスト数）に達しました。"
-            "1分ほど待ってから、もう一度「添削開始」を押してください。"
-        )
+    st.error(
+        "無料枠のレート上限（1分あたりのリクエスト数）に達しました。"
+        "1分ほど待ってから、もう一度「添削開始」を押してください。"
+    )
 except Exception as e:
-        st.error(f"エラー: {e}")
+    st.error(f"エラー: {e}")
