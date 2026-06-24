@@ -356,8 +356,8 @@ if st.button("添削開始"):
             """
             
 
-            # --- スプレッドシートへ保存 ---
-        # ここは右側に字下げされていてOK（if文やボタンの中なら）
+# --- スプレッドシートへ保存 ---
+# ここは右側に字下げされていてOK（if文やボタンの中なら）
         try:
             user_input_data = text_input if text_input else "入力なし"
             ok, err = save_to_sheet(
