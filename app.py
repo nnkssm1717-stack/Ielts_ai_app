@@ -96,6 +96,39 @@ def generate_with_retry(model, contents, max_retries=1):
             time.sleep(wait)
 
 
+
+# 1. タスクごとの制限時間設定
+task_limits = {"Task 1": 20, "Task 2": 40}
+target_minutes = task_limits.get(task_type, 20)
+
+# 2. 「タイマー開始」ボタンで時間をセット
+if st.button("タイマー開始"):
+    st.session_state.start_time = time.time()
+    st.session_state.limit_seconds = target_minutes * 60
+    st.rerun()
+
+# 3. タイマー表示エリア
+timer_placeholder = st.empty()
+
+if 'start_time' in st.session_state:
+    # 残り時間の計算
+    elapsed = time.time() - st.session_state.start_time
+    remaining = st.session_state.limit_seconds - int(elapsed)
+    
+    if remaining > 0:
+        minutes, seconds = divmod(remaining, 60)
+        timer_placeholder.warning(f"⏰ 残り時間: {minutes:02d}:{seconds:02d}")
+        
+        # 1秒ごとに画面を更新してカウントダウンを動かす
+        time.sleep(1)
+        st.rerun()
+    else:
+        timer_placeholder.error("⏰ 時間終了です！添削送信ボタンを押してください。")
+        # 終了後にスタート時間を削除してカウントを止める
+        if 'start_time' in st.session_state:
+            del st.session_state.start_time
+
+
 # ============================================================
 # Googleスプレッドシート接続
 # ============================================================
