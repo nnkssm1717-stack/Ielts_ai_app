@@ -25,7 +25,7 @@ genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
 # ============================================================
 # 無料枠の数値は変動するため、ここはあくまで参考値。正確な上限はアカウント/時期で
 # 変わるので AI Studio (https://aistudio.google.com/rate-limit) で確認すること。
-RATE_LIMIT_NOTE_DATE = "2026年6月時点の参考値"
+RATE_LIMIT_NOTE_DATE = "2026年8月時点の参考値"
 
 # キーは Gemini のモデルID。表示はこの並び順（上ほど新しさ・推奨度が高い）。
 MODEL_CATALOG = {
